@@ -289,6 +289,15 @@
   </div>
 
   <div class="card">
+    <div class="card-title">🏢 Mano įmonė (pirkėjas)</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Įmonės pavadinimas — niekada nebus laikomas tiekėju.</p>
+    <div style="display:flex;gap:8px">
+      <input id="buyerNameInput" placeholder="pvz: MB Sausainėlė" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--bg);color:var(--text)">
+      <button class="btn btn-primary btn-sm" onclick="saveBuyerName()">Išsaugoti</button>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="card-title">🔗 Automatinis pildymas — produktas → gaminys</div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Įvesk raktažodį (dalį produkto pavadinimo) ir gaminį. Kai AI randa produktą, automatiškai užpildo "Kur panaudota".</p>
     <div id="taisyklesList" style="margin-bottom:10px"></div>
@@ -404,6 +413,17 @@ function renderTaisykles() {
     </div>`).join('');
 }
 
+function saveBuyerName() {
+  const val = document.getElementById('buyerNameInput').value.trim();
+  if (!val) return;
+  const existing = JSON.parse(localStorage.getItem('atsek_buyers') || '[]');
+  const lower = val.toLowerCase();
+  if (!existing.includes(lower)) { existing.push(lower); localStorage.setItem('atsek_buyers', JSON.stringify(existing)); }
+  // Also update KNOWN_BUYERS array
+  if (!KNOWN_BUYERS.includes(lower)) KNOWN_BUYERS.push(lower);
+  showToast('✓ Išsaugota: ' + val);
+}
+
 function toggleTheme() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   const next = isDark ? 'light' : 'dark';
@@ -416,6 +436,11 @@ window.onload = () => {
   const k = getKey();
   if (k) document.getElementById('apiKeyInput').value = k;
   // Apply saved theme
+  // Load saved buyer names
+  const savedBuyers = JSON.parse(localStorage.getItem('atsek_buyers') || '[]');
+  savedBuyers.forEach(b => { if (!KNOWN_BUYERS.includes(b)) KNOWN_BUYERS.push(b); });
+  const buyerInp = document.getElementById('buyerNameInput');
+  if (buyerInp && savedBuyers.length) buyerInp.value = savedBuyers[savedBuyers.length-1];
   const savedTheme = localStorage.getItem('atsek_theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
   document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
@@ -445,12 +470,31 @@ function onFile(inp) { if (inp.files[0]) loadFile(inp.files[0]); }
 function loadFile(f) {
   const r = new FileReader();
   r.onload = e => {
-    imgB64 = e.target.result.split(',')[1];
-    imgType = f.type || 'image/jpeg';
-    const img = document.getElementById('previewImg');
-    img.src = e.target.result; img.style.display = 'block';
-    document.getElementById('analyzeBtn').disabled = false;
-    document.getElementById('dropZone').style.display = 'none';
+    const original = e.target.result;
+    // Resize to max 1600px for consistent quality across devices
+    const image = new Image();
+    image.onload = () => {
+      const MAX = 1600;
+      let w = image.width, h = image.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(image, 0, 0, w, h);
+      const resized = canvas.toDataURL('image/jpeg', 0.92);
+      imgB64 = resized.split(',')[1];
+      imgType = 'image/jpeg';
+      const preview = document.getElementById('previewImg');
+      preview.src = resized; preview.style.display = 'block';
+      document.getElementById('analyzeBtn').disabled = false;
+      document.getElementById('dropZone').style.display = 'none';
+      // Show image info
+      const kb = Math.round(imgB64.length * 0.75 / 1024);
+      showStatus('📷 ' + w + 'x' + h + 'px · ' + kb + ' KB — spustelėk Analizuoti', 'info');
+    };
+    image.src = original;
   };
   r.readAsDataURL(f);
 }
@@ -611,7 +655,28 @@ function fuzzyMatchProduct(name) {
   return best; // returns known name or null
 }
 
+// Known buyer names — never treat as supplier
+const KNOWN_BUYERS = ['mb sausainėlė', 'mb sausainelis', 'sausainėlė', 'sausainelis'];
+
+function fixSupplierBuyer(d) {
+  const tiek = (d.tiekojas || '').toLowerCase().trim();
+  const pirk = (d.pirkejas || '').toLowerCase().trim();
+  // If supplier matches known buyer — swap them
+  const tiekIsBuyer = KNOWN_BUYERS.some(b => tiek.includes(b));
+  const pirkIsBuyer = KNOWN_BUYERS.some(b => pirk.includes(b));
+  if (tiekIsBuyer && !pirkIsBuyer) {
+    // Swap
+    return { ...d, tiekojas: d.pirkejas, pirkejas: d.tiekojas };
+  }
+  // If buyer is empty but supplier matches — move to buyer, clear supplier
+  if (tiekIsBuyer && !d.pirkejas) {
+    return { ...d, tiekojas: '', pirkejas: d.tiekojas };
+  }
+  return d;
+}
+
 function fillForm(d) {
+  d = fixSupplierBuyer(d);
   document.getElementById('f_sasknr').value = d.sasknr || '';
   document.getElementById('f_data').value = d.data || '';
   document.getElementById('f_tiek').value = d.tiekojas || '';
