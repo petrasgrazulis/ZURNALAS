@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Žurnalas">
+<meta name="theme-color" content="#2a6b3c">
+<title>Atsekamumo Žurnalas</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f5f4f0;
+    --card:#ffffff;
+    --accent:#2a6b3c;
+    --accent2:#e8f5ec;
+    --text:#1a1a1a;
+    --muted:#6b7280;
+    --border:#e5e5e0;
+    --danger:#dc2626;
+    --warn-bg:#fef3c7;
+    --warn:#92400e;
+    --success-bg:#d1fae5;
+    --success:#065f46;
+    --info-bg:#dbeafe;
+    --info:#1e40af;
+    --radius:10px;
+    --radius-lg:14px;
+  }
+  [data-theme="dark"]{
+    --bg:#0f1117;
+    --card:#1a1d27;
+    --accent:#3dba60;
+    --accent2:#1a2e22;
+    --text:#e8eaf0;
+    --muted:#6b7280;
+    --border:#2a2d3a;
+    --danger:#f87171;
+    --warn-bg:#2d2007;
+    --warn:#fbbf24;
+    --success-bg:#052e16;
+    --success:#4ade80;
+    --info-bg:#0c1a33;
+    --info:#60a5fa;
+  }
+  body{transition:background .2s,color .2s}
+  .card,.header,.tabs,.tab,.upload-zone,.field input,.item-row input,.j-panaud input,.search-bar input,.key-input,.api-row input,.panaud-input{transition:background .2s,border-color .2s,color .2s}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+  
+  /* HEADER */
+  .header{background:var(--card);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+  .header-icon{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .header-title{font-size:16px;font-weight:600;color:var(--text)}
+  .header-sub{font-size:11px;color:var(--muted);margin-top:1px}
+  .header-right{margin-left:auto;display:flex;gap:8px}
+
+  /* TABS */
+  .tabs{display:flex;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto}
+  .tab{flex:1;min-width:80px;padding:10px 8px;font-size:12px;font-weight:500;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;text-align:center}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+  /* PANELS */
+  .panel{display:none;padding:12px 16px 80px}
+  .panel.active{display:block}
+
+  /* CARDS */
+  .card{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border);padding:14px;margin-bottom:12px}
+  .card-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+
+  /* API KEY */
+  .api-row{display:flex;gap:8px;margin-bottom:12px}
+  .api-row input{flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--card);color:var(--text)}
+  .api-row input:focus{outline:none;border-color:var(--accent)}
+
+  /* UPLOAD */
+  .upload-zone{border:2px dashed var(--border);border-radius:var(--radius-lg);padding:24px 16px;text-align:center;cursor:pointer;background:var(--bg);transition:all .15s;margin-bottom:12px}
+  .upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent2)}
+  .upload-zone .icon{font-size:36px;margin-bottom:8px}
+  .upload-zone .title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+  .upload-zone .sub{font-size:12px;color:var(--muted)}
+  .preview-img{width:100%;max-height:240px;object-fit:contain;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:12px;display:none;background:#f9f9f7}
+
+  /* BUTTONS */
+  .btn{padding:10px 16px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:#235c32}
+  .btn-primary:disabled{opacity:.45;cursor:not-allowed}
+  .btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .btn-outline:hover{background:var(--bg)}
+  .btn-sm{padding:6px 12px;font-size:12px}
+  .btn-danger{background:var(--danger);color:#fff}
+
+  /* STATUS */
+  .status{padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:12px;display:none;font-weight:500}
+  .status.info{background:var(--info-bg);color:var(--info)}
+  .status.success{background:var(--success-bg);color:var(--success)}
+  .status.error{background:#fee2e2;color:var(--danger)}
+
+  /* FORM FIELDS */
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+  .field input,.field select{padding:8px 10px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text)}
+  .field input:focus{outline:none;border-color:var(--accent);background:var(--card)}
+
+  /* ITEMS TABLE - desktop */
+  .items-header{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.4fr 28px;gap:6px;padding:4px 8px;margin-bottom:4px}
+  .items-header span{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase}
+  .item-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.4fr 28px;gap:6px;align-items:center;margin-bottom:6px}
+  .item-row input{padding:7px 8px;font-size:12px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);width:100%}
+  .item-row input:focus{outline:none;border-color:var(--accent)}
+  .del-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px;padding:2px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .del-btn:hover{color:var(--danger)}
+  .add-row-btn{color:var(--accent);font-size:12px;font-weight:600;background:none;border:none;cursor:pointer;padding:4px 8px;margin-top:2px}
+
+  /* MOBILE */
+  @media(max-width:600px){
+    .field-grid{grid-template-columns:1fr}
+    .action-row{flex-direction:column}
+    .action-row .btn{width:100%;justify-content:center}
+    .panel{padding:10px 12px 80px}
+    .card{padding:12px}
+    .items-scroll-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .items-header{min-width:600px}
+    .item-row{min-width:600px}
+  }
+
+  /* ACTION ROW */
+  .action-row{display:flex;gap:8px;justify-content:flex-end;padding-top:12px;border-top:1px solid var(--border);margin-top:12px}
+
+  /* JOURNAL TABLE */
+  .search-bar{display:flex;gap:8px;margin-bottom:12px}
+  .search-bar input{flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--card);color:var(--text)}
+  .search-bar input:focus{outline:none;border-color:var(--accent)}
+  .journal-list{display:flex;flex-direction:column;gap:8px}
+  .j-entry{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+  .j-header{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer}
+  .j-header:hover{background:var(--bg)}
+  .j-date{background:var(--accent);color:#fff;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;flex-shrink:0}
+  .j-product{font-size:14px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .j-supplier{font-size:12px;color:var(--muted)}
+  .j-badge{padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;flex-shrink:0}
+  .badge-green{background:var(--success-bg);color:var(--success)}
+  .badge-amber{background:var(--warn-bg);color:var(--warn)}
+  .badge-red{background:#fee2e2;color:var(--danger)}
+  .j-body{padding:0 14px 12px;border-top:1px solid var(--border);display:none}
+  .j-body.open{display:block}
+  .j-fields{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;font-size:12px}
+  .j-field{display:flex;flex-direction:column;gap:2px}
+  .j-field .lbl{color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase}
+  .j-field .val{color:var(--text);font-weight:500}
+  .j-panaud{margin-top:10px}
+  .j-panaud label{font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase}
+  .j-panaud input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--bg);color:var(--text)}
+  .j-panaud input:focus{outline:none;border-color:var(--accent)}
+  .j-del-row{display:flex;justify-content:flex-end;margin-top:8px}
+
+  /* STATS */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px}
+  .stat-card .lbl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:6px}
+  .stat-card .val{font-size:26px;font-weight:700;color:var(--text)}
+  .stat-card .sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .bar-label{font-size:12px;color:var(--text);min-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar-track{flex:1;background:var(--bg);border-radius:4px;height:14px;overflow:hidden}
+  .bar-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+  .bar-count{font-size:11px;color:var(--muted);min-width:24px;text-align:right}
+
+  /* EMPTY */
+  .empty{text-align:center;padding:48px 16px;color:var(--muted)}
+  .empty .icon{font-size:48px;margin-bottom:12px}
+  .empty p{font-size:14px}
+
+  /* BOTTOM NAV */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100}
+  .nav-btn{flex:1;padding:10px 4px 12px;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;font-weight:500;transition:color .15s}
+  .nav-btn.active{color:var(--accent)}
+  .nav-btn .ico{font-size:20px;line-height:1}
+
+  /* LOADING SPINNER */
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* SCROLL */
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+  @keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">📋</div>
+  <div>
+    <div class="header-title">Atsekamumo Žurnalas</div>
+    <div class="header-sub">Žaliavų gavimas ir panaudojimas</div>
+  </div>
+  <div class="header-right">
+    <button id="themeBtn" onclick="toggleTheme()" style="background:none;border:1px solid var(--border);border-radius:8px;cursor:pointer;padding:6px 10px;font-size:16px;color:var(--text);line-height:1" title="Keisti temą">🌙</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('scan',this)">📷 Skenavimas</button>
+  <button class="tab" onclick="switchTab('journal',this)">📋 Žurnalas</button>
+  <button class="tab" onclick="switchTab('stats',this)">📊 Statistika</button>
+  <button class="tab" onclick="switchTab('settings',this)">⚙️ Nustatymai</button>
+</div>
+
+<!-- SCAN TAB -->
+<div id="tab-scan" class="panel active">
+  <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileIn').click()">
+    <div class="icon">🧾</div>
+    <div class="title">Įkelk sąskaitos nuotrauką</div>
+    <div class="sub">Spustelėk arba nutempk · JPG, PNG</div>
+  </div>
+  <input type="file" id="fileIn" accept="image/*" style="display:none" onchange="onFile(this)">
+  <img id="previewImg" class="preview-img">
+
+  <div id="statusBox" class="status"></div>
+
+  <button class="btn btn-primary" id="analyzeBtn" onclick="analyze()" disabled style="width:100%;justify-content:center;margin-bottom:12px">
+    🤖 Analizuoti su AI
+  </button>
+
+  <div id="extractedCard" style="display:none">
+    <div class="card">
+      <div class="card-title">📄 Sąskaitos informacija</div>
+      <div class="field-grid">
+        <div class="field"><label>Sąskaitos Nr.</label><input id="f_sasknr" type="text" placeholder="CC0406-0082833"></div>
+        <div class="field"><label>Data</label><input id="f_data" type="date"></div>
+        <div class="field"><label>Tiekėjas</label><input id="f_tiek" type="text" placeholder="UAB „Sanitex""></div>
+        <div class="field"><label>Pirkėjas</label><input id="f_pirk" type="text" placeholder="MB Sausainėlė"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📦 Prekės / žaliavos</div>
+      <div class="items-scroll-wrap">
+        <div class="items-header">
+          <span>Produktas</span><span>Partijos Nr.</span><span>Galioja iki</span><span>Kiekis</span><span>Kur panaudota</span><span></span>
+        </div>
+        <div id="itemsContainer"></div>
+      </div>
+      <button class="add-row-btn" onclick="addItem()">+ Pridėti eilutę</button>
+      <div class="action-row">
+        <button class="btn btn-outline" onclick="clearForm()">Išvalyti</button>
+        <button class="btn btn-primary" onclick="saveToJournal()">✓ Įrašyti į žurnalą</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JOURNAL TAB -->
+<div id="tab-journal" class="panel">
+  <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+    <input type="text" id="searchInput" placeholder="🔍 Ieškoti produkto, tiekėjo..." oninput="onSearch()" style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--card);color:var(--text)">
+  </div>
+  <div id="searchResults" style="display:none;margin-bottom:12px"></div>
+  <div id="journalList" class="journal-list"></div>
+</div>
+
+<!-- STATS TAB -->
+<div id="tab-stats" class="panel">
+  <div class="stat-grid" id="statGrid"></div>
+  <div class="card" id="topProductsCard" style="display:none">
+    <div class="card-title">📦 Dažniausiai gauti produktai</div>
+    <div id="topProducts"></div>
+  </div>
+  <div class="card" id="topSuppliersCard" style="display:none">
+    <div class="card-title">🏭 Tiekėjai</div>
+    <div id="topSuppliers"></div>
+  </div>
+</div>
+
+<!-- SETTINGS TAB -->
+<div id="tab-settings" class="panel">
+  <div class="card">
+    <div class="card-title">🔑 Anthropic API raktas</div>
+    <div style="display:flex;gap:8px">
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-..." style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--bg);color:var(--text)">
+      <button class="btn btn-primary" onclick="saveKey()">Išsaugoti</button>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:8px">Raktas saugomas tik šiame įrenginyje (localStorage)</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🏢 Mano įmonė (pirkėjas)</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Įmonės pavadinimas — niekada nebus laikomas tiekėju.</p>
+    <div style="display:flex;gap:8px">
+      <input id="buyerNameInput" placeholder="pvz: MB Sausainėlė" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--bg);color:var(--text)">
+      <button class="btn btn-primary btn-sm" onclick="saveBuyerName()">Išsaugoti</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔗 Automatinis pildymas — produktas → gaminys</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Įvesk raktažodį (dalį produkto pavadinimo) ir gaminį. Kai AI randa produktą, automatiškai užpildo "Kur panaudota".</p>
+    <div id="taisyklesList" style="margin-bottom:10px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center">
+      <input id="t_raktas" placeholder="Raktažodis, pvz: cukrus" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--bg);color:var(--text)">
+      <input id="t_gaminys" placeholder="Gaminys, pvz: Kepiniai" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--bg);color:var(--text)">
+      <button class="btn btn-primary" onclick="addTaisykle()">+ Pridėti</button>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:8px">Raktažodis netikrina didžiųjų/mažųjų raidžių. Pvz. "miltai" atitiks "Kvietiniai miltai 1kg".</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💾 Eksportas ir kopija</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="exportCSV()">⬇ CSV (Excel)</button>
+      <button class="btn btn-outline" onclick="exportArchiveCSV()">⬇ Archyvo CSV</button>
+      <button class="btn btn-outline" onclick="copyToClipboard()">📋 Kopijuoti</button>
+    </div>
+    <p id="dataCount" style="font-size:12px;color:var(--muted);margin-top:10px"></p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📥 Importas / Atkūrimas</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Įkelk anksčiau eksportuotą JSON failą arba įklijuok JSON tekstą.</p>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">📂 Įkelti JSON failą</button>
+      <button class="btn btn-outline" onclick="toggleImportPaste()">📋 Įklijuoti tekstą</button>
+    </div>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importFromFile(this)">
+    <div id="importPasteArea" style="display:none;margin-top:8px">
+      <textarea id="importPasteText" placeholder='[{"id":"...","produktas":"..."}]' style="width:100%;height:100px;padding:8px;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);resize:vertical"></textarea>
+      <button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="importFromPaste()">✓ Importuoti</button>
+    </div>
+    <div id="importStatus" style="display:none;margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🗄 Archyvas</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Išsaugo dabartinį žurnalą į archyvą (kopija). Pagrindinis žurnalas lieka nepakitęs.</p>
+    <button class="btn btn-primary" onclick="archiveAll()">🗄 Archyvuoti dabar</button>
+    <p style="font-size:11px;color:var(--muted);margin-top:8px">Archyvas kaupiamas — kiekvienas archyvavimas prideda naują įrašą. Niekada neišvalomas.</p>
+  </div>
+
+  <div class="card" id="archiveCard" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="card-title" style="margin-bottom:0">🗄 Archyvas</div>
+      <button class="btn btn-outline btn-sm" onclick="exportArchiveJSON()">⬇ Eksportuoti</button>
+    </div>
+    <div id="archiveList"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'atsek_v1';
+const ARCHIVE_KEY = 'atsek_archive_v1';
+let imgB64 = null, imgType = null;
+
+function getData() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') } catch { return [] } }
+function saveData(d) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)) }
+function getKey() { return localStorage.getItem('atsek_api_key') || '' }
+
+function saveKey() {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  if (k) { localStorage.setItem('atsek_api_key', k); showStatus('✓ Raktas išsaugotas', 'success'); }
+}
+
+/* ---- TAISYKLĖS ---- */
+function getTaisykles() { try { return JSON.parse(localStorage.getItem('atsek_taisykles') || '[]') } catch { return [] } }
+function saveTaisykles(t) { localStorage.setItem('atsek_taisykles', JSON.stringify(t)) }
+
+function autoFillGaminys(produktas) {
+  const t = getTaisykles();
+  const p = (produktas || '').toLowerCase();
+  for (const rule of t) {
+    if (p.includes(rule.raktas.toLowerCase())) return rule.gaminys;
+  }
+  return '';
+}
+
+function addTaisykle() {
+  const raktas = document.getElementById('t_raktas').value.trim();
+  const gaminys = document.getElementById('t_gaminys').value.trim();
+  if (!raktas || !gaminys) return;
+  const t = getTaisykles();
+  if (t.find(r => r.raktas.toLowerCase() === raktas.toLowerCase())) {
+    alert('Taisyklė su šiuo raktažodžiu jau yra'); return;
+  }
+  t.push({ raktas, gaminys });
+  saveTaisykles(t);
+  document.getElementById('t_raktas').value = '';
+  document.getElementById('t_gaminys').value = '';
+  renderTaisykles();
+}
+
+function deleteTaisykle(i) {
+  const t = getTaisykles();
+  t.splice(i, 1);
+  saveTaisykles(t);
+  renderTaisykles();
+}
+
+function renderTaisykles() {
+  const t = getTaisykles();
+  const el = document.getElementById('taisyklesList');
+  if (!el) return;
+  if (!t.length) { el.innerHTML = '<p style="font-size:12px;color:var(--muted);margin-bottom:8px">Dar nėra taisyklių.</p>'; return; }
+  el.innerHTML = t.map((r, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg);border-radius:8px;margin-bottom:6px">
+      <span style="font-size:13px;font-weight:600;color:var(--accent);min-width:120px">${r.raktas}</span>
+      <span style="font-size:12px;color:var(--muted)">→</span>
+      <span style="font-size:13px;color:var(--text);flex:1">${r.gaminys}</span>
+      <button onclick="deleteTaisykle(${i})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:2px 4px" title="Ištrinti">✕</button>
+    </div>`).join('');
+}
+
+function saveBuyerName() {
+  const val = document.getElementById('buyerNameInput').value.trim();
+  if (!val) return;
+  const existing = JSON.parse(localStorage.getItem('atsek_buyers') || '[]');
+  const lower = val.toLowerCase();
+  if (!existing.includes(lower)) { existing.push(lower); localStorage.setItem('atsek_buyers', JSON.stringify(existing)); }
+  // Also update KNOWN_BUYERS array
+  if (!KNOWN_BUYERS.includes(lower)) KNOWN_BUYERS.push(lower);
+  showToast('✓ Išsaugota: ' + val);
+}
+
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const next = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('atsek_theme', next);
+  document.getElementById('themeBtn').textContent = next === 'dark' ? '☀️' : '🌙';
+}
+
+window.onload = () => {
+  const k = getKey();
+  if (k) document.getElementById('apiKeyInput').value = k;
+  // Apply saved theme
+  // Load saved buyer names
+  const savedBuyers = JSON.parse(localStorage.getItem('atsek_buyers') || '[]');
+  savedBuyers.forEach(b => { if (!KNOWN_BUYERS.includes(b)) KNOWN_BUYERS.push(b); });
+  const buyerInp = document.getElementById('buyerNameInput');
+  if (buyerInp && savedBuyers.length) buyerInp.value = savedBuyers[savedBuyers.length-1];
+  const savedTheme = localStorage.getItem('atsek_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+  renderJournal(); renderStats(); updateDataCount(); renderTaisykles(); renderArchive();
+  setupDrop();
+};
+
+function setupDrop() {
+  const dz = document.getElementById('dropZone');
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag'); };
+  dz.ondragleave = () => dz.classList.remove('drag');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag'); const f = e.dataTransfer.files[0]; if (f) loadFile(f); };
+}
+
+function switchTab(t, btn) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + t).classList.add('active');
+  if (t === 'journal') renderJournal();
+  if (t === 'stats') renderStats();
+  if (t === 'settings') { updateDataCount(); renderTaisykles(); renderArchive(); }
+}
+
+function onFile(inp) { if (inp.files[0]) loadFile(inp.files[0]); }
+
+function loadFile(f) {
+  const r = new FileReader();
+  r.onload = e => {
+    const original = e.target.result;
+    // Resize to max 1600px for consistent quality across devices
+    const image = new Image();
+    image.onload = () => {
+      const MAX = 1600;
+      let w = image.width, h = image.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(image, 0, 0, w, h);
+      const resized = canvas.toDataURL('image/jpeg', 0.92);
+      imgB64 = resized.split(',')[1];
+      imgType = 'image/jpeg';
+      const preview = document.getElementById('previewImg');
+      preview.src = resized; preview.style.display = 'block';
+      document.getElementById('analyzeBtn').disabled = false;
+      document.getElementById('dropZone').style.display = 'none';
+      // Show image info
+      const kb = Math.round(imgB64.length * 0.75 / 1024);
+      showStatus('📷 ' + w + 'x' + h + 'px · ' + kb + ' KB — spustelėk Analizuoti', 'info');
+    };
+    image.src = original;
+  };
+  r.readAsDataURL(f);
+}
+
+function showStatus(msg, type) {
+  const b = document.getElementById('statusBox');
+  b.textContent = msg; b.className = 'status ' + type; b.style.display = 'block';
+  if (type === 'success') setTimeout(() => { b.style.display = 'none'; }, 3000);
+}
+
+function robustParseJSON(txt) {
+  try { return JSON.parse(txt); } catch(e) {}
+  const m = txt.match(/\{[\s\S]*\}/);
+  if (!m) return null;
+  let raw = m[0];
+  try { return JSON.parse(raw); } catch(e) {}
+  raw = raw.replace(/,(\s*[}\]])/g, '$1');
+  raw = raw.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)/g, '$1"$2"$3');
+  if (!raw.trim().endsWith('}')) {
+    let opens = 0, openSq = 0;
+    for (const ch of raw) {
+      if (ch === '{') opens++; else if (ch === '}') opens--;
+      else if (ch === '[') openSq++; else if (ch === ']') openSq--;
+    }
+    raw = raw.replace(/,\s*\{[^}]*$/, '');
+    while (openSq-- > 0) raw += ']';
+    while (opens-- > 0) raw += '}';
+  }
+  try { return JSON.parse(raw); } catch(e) {}
+  try {
+    const header = {};
+    const snr = txt.match(/"sasknr"\s*:\s*"([^"]*)"/); if (snr) header.sasknr = snr[1];
+    const dat = txt.match(/"data"\s*:\s*"([^"]*)"/); if (dat) header.data = dat[1];
+    const tiek = txt.match(/"tiekojas"\s*:\s*"([^"]*)"/); if (tiek) header.tiekojas = tiek[1];
+    const pirk = txt.match(/"pirkejas"\s*:\s*"([^"]*)"/); if (pirk) header.pirkejas = pirk[1];
+    const prekes = [];
+    const lines = txt.split('\n');
+    lines.forEach(line => {
+      const p = line.match(/"produktas"\s*:\s*"([^"]+)"/);
+      const k = line.match(/"kiekis"\s*:\s*"([^"]+)"/);
+      const par = line.match(/"partijos_nr"\s*:\s*"([^"]*)"/);
+      const g = line.match(/"galioja_iki"\s*:\s*"([^"]*)"/);
+      if (p) prekes.push({ produktas: p[1], kiekis: k?k[1]:'', partijos_nr: par?par[1]:'', galioja_iki: g?g[1]:'' });
+    });
+    if (prekes.length) return { ...header, prekes };
+  } catch(e) {}
+  return null;
+}
+
+async function analyze() {
+  const key = getKey();
+  if (!key) { showStatus('⚠ Įvesk API raktą nustatymuose', 'error'); return; }
+  if (!imgB64) { showStatus('⚠ Įkelk nuotrauką', 'error'); return; }
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Analizuojama...';
+  showStatus('🤖 AI analizuoja sąskaitą...', 'info');
+
+  const prompt = [
+    'This is a Lithuanian company invoice or purchase receipt.',
+    'Extract the following fields and return ONLY a valid JSON object, no markdown, no explanation, no extra text.',
+    'JSON structure:',
+    '{ "sasknr": "invoice series and number", "data": "date as YYYY-MM-DD", "tiekojas": "supplier company name", "pirkejas": "buyer company name",',
+    '  "prekes": [ { "produktas": "short clear product name", "partijos_nr": "barcode or batch number if present else empty string", "galioja_iki": "expiry date as YYYY-MM-DD if present else empty string", "kiekis": "quantity with unit e.g. 4 VNT or 10.739 KG" } ] }',
+    'Extract ALL line items. If a field is not found use empty string. Return ONLY the JSON object.'
+  ].join(' ');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 3000,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: imgType, data: imgB64 } },
+          { type: 'text', text: prompt }
+        ]}]
+      })
+    });
+    const d = await res.json();
+    if (d.error) { showStatus('❌ API klaida: ' + d.error.message, 'error'); return; }
+    const txt = d.content.find(c => c.type === 'text')?.text || '';
+    const parsed = robustParseJSON(txt);
+    if (!parsed) {
+      // Show raw response for debugging
+      showStatus('❌ Nepavyko ištraukti. Atsakymas: ' + txt.slice(0, 200), 'error');
+      return;
+    }
+    fillForm(parsed);
+    showStatus('✓ Ištraukta! Patikrink duomenis.', 'success');
+  } catch (e) {
+    showStatus('❌ ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🤖 Analizuoti su AI';
+  }
+}
+
+function parseQty(kiekis) {
+  if (!kiekis) return { num: 0, unit: '' };
+  const m = String(kiekis).match(/([\d.,]+)\s*([A-Za-zĄČĘĖĮŠŲŪŽąčęėįšųūž]*)/);
+  if (!m) return { num: 0, unit: kiekis };
+  return { num: parseFloat(m[1].replace(',', '.')) || 0, unit: m[2].trim().toUpperCase() };
+}
+
+function groupPrekes(prekes) {
+  const map = {};
+  prekes.forEach(p => {
+    const key = (p.produktas || '').trim().toLowerCase();
+    if (!key) return;
+    if (!map[key]) {
+      map[key] = { produktas: p.produktas, partijos_nr: p.partijos_nr, galioja_iki: p.galioja_iki, totalNum: 0, unit: '' };
+    }
+    const { num, unit } = parseQty(p.kiekis);
+    map[key].totalNum += num;
+    if (!map[key].unit && unit) map[key].unit = unit;
+    if (p.galioja_iki && (!map[key].galioja_iki || p.galioja_iki < map[key].galioja_iki)) map[key].galioja_iki = p.galioja_iki;
+  });
+  return Object.values(map).map(g => ({
+    produktas: g.produktas,
+    partijos_nr: g.partijos_nr,
+    galioja_iki: g.galioja_iki,
+    kiekis: g.totalNum ? (Math.round(g.totalNum * 1000) / 1000) + (g.unit ? ' ' + g.unit : '') : ''
+  }));
+}
+
+// Levenshtein distance
+function levenshtein(a, b) {
+  a = a.toLowerCase(); b = b.toLowerCase();
+  const m = a.length, n = b.length;
+  const dp = Array.from({length: m+1}, (_, i) => Array.from({length: n+1}, (_, j) => i === 0 ? j : j === 0 ? i : 0));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+// Find closest known product name from journal
+function fuzzyMatchProduct(name) {
+  if (!name) return null;
+  const known = [...new Set(getData().map(r => r.produktas).filter(Boolean))];
+  if (!known.length) return null;
+  const nameLow = name.toLowerCase();
+  let best = null, bestDist = Infinity;
+  known.forEach(k => {
+    const dist = levenshtein(nameLow, k.toLowerCase());
+    // Only match if distance <= 2 AND names are similar length (within 3 chars)
+    if (dist <= 2 && Math.abs(name.length - k.length) <= 3 && dist < bestDist) {
+      bestDist = dist; best = k;
+    }
+  });
+  return best; // returns known name or null
+}
+
+// Known buyer names — never treat as supplier
+const KNOWN_BUYERS = ['mb sausainėlė', 'mb sausainelis', 'sausainėlė', 'sausainelis'];
+
+function fixSupplierBuyer(d) {
+  const tiek = (d.tiekojas || '').toLowerCase().trim();
+  const pirk = (d.pirkejas || '').toLowerCase().trim();
+  // If supplier matches known buyer — swap them
+  const tiekIsBuyer = KNOWN_BUYERS.some(b => tiek.includes(b));
+  const pirkIsBuyer = KNOWN_BUYERS.some(b => pirk.includes(b));
+  if (tiekIsBuyer && !pirkIsBuyer) {
+    // Swap
+    return { ...d, tiekojas: d.pirkejas, pirkejas: d.tiekojas };
+  }
+  // If buyer is empty but supplier matches — move to buyer, clear supplier
+  if (tiekIsBuyer && !d.pirkejas) {
+    return { ...d, tiekojas: '', pirkejas: d.tiekojas };
+  }
+  return d;
+}
+
+function fillForm(d) {
+  d = fixSupplierBuyer(d);
+  document.getElementById('f_sasknr').value = d.sasknr || '';
+  document.getElementById('f_data').value = d.data || '';
+  document.getElementById('f_tiek').value = d.tiekojas || '';
+  document.getElementById('f_pirk').value = d.pirkejas || '';
+  const cont = document.getElementById('itemsContainer');
+  cont.innerHTML = '';
+  const grouped = groupPrekes(d.prekes || []);
+  const corrections = [];
+  grouped.forEach(p => {
+    const match = fuzzyMatchProduct(p.produktas);
+    if (match && match.toLowerCase() !== (p.produktas||'').toLowerCase()) {
+      corrections.push({ original: p.produktas, corrected: match });
+      p.produktas = match;
+    }
+    p._autoGaminys = autoFillGaminys(p.produktas);
+    addItem(p);
+  });
+  if (!grouped.length) addItem();
+  document.getElementById('extractedCard').style.display = 'block';
+  if (corrections.length) {
+    const msg = corrections.map(c => '"' + c.original + '" → "' + c.corrected + '"').join(', ');
+    showStatus('🔧 Pataisyta: ' + msg, 'info');
+  }
+}
+
+function addItem(p) {
+  p = p || {};
+  const row = document.createElement('div');
+  row.className = 'item-row';
+  row.innerHTML = `
+    <input type="text" inputmode="text" autocomplete="off" placeholder="Produktas" value="${esc(p.produktas||'')}">
+    <input type="text" inputmode="text" autocomplete="off" placeholder="Partijos Nr." value="${esc(p.partijos_nr||'')}">
+    <input type="text" inputmode="text" autocomplete="off" placeholder="Galioja iki" value="${esc(p.galioja_iki||'')}">
+    <input type="text" inputmode="text" autocomplete="off" placeholder="Kiekis" value="${esc(p.kiekis||'')}">
+    <input type="text" inputmode="text" autocomplete="off" placeholder="Kur panaudota..." value="${esc(p._autoGaminys||'')}" style="${p._autoGaminys?'background:var(--accent2);border-color:var(--accent)':''}">
+    <button class="del-btn" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('itemsContainer').appendChild(row);
+}
+
+function esc(s) { return String(s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+function clearForm() {
+  ['f_sasknr','f_data','f_tiek','f_pirk'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('itemsContainer').innerHTML = '';
+  document.getElementById('extractedCard').style.display = 'none';
+  document.getElementById('previewImg').style.display = 'none';
+  document.getElementById('statusBox').style.display = 'none';
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('dropZone').style.display = 'block';
+  imgB64 = null;
+}
+
+function saveToJournal(force) {
+  const sasknr = document.getElementById('f_sasknr').value.trim();
+  const data = document.getElementById('f_data').value.trim();
+  const tiek = document.getElementById('f_tiek').value.trim();
+  const pirk = document.getElementById('f_pirk').value.trim();
+  const rows = document.querySelectorAll('#itemsContainer .item-row');
+  const entries = [];
+  rows.forEach(r => {
+    const inps = r.querySelectorAll('input');
+    const prod = inps[0].value.trim();
+    if (!prod) return;
+    entries.push({
+      id: Date.now() + '-' + Math.random().toString(36).slice(2),
+      data, tiekojas: tiek, pirkejas: pirk, sasknr,
+      produktas: prod,
+      partijos_nr: inps[1].value.trim(),
+      galioja_iki: inps[2].value.trim(),
+      kiekis: inps[3].value.trim(),
+      kur_panaudota: inps[4].value.trim(),
+      saved_at: new Date().toISOString()
+    });
+  });
+  if (!entries.length) { showStatus('⚠ Nėra prekių įrašyti', 'error'); return; }
+
+  // Duplicate check by sasknr
+  if (sasknr && !force) {
+    const existing = getData().filter(r => r.sasknr && r.sasknr === sasknr);
+    if (existing.length) {
+      showDuplicateWarning(sasknr, existing[0].data || existing[0].saved_at?.slice(0,10), existing[0].tiekojas, existing.length);
+      // Store pending entries temporarily
+      window._pendingEntries = entries;
+      return;
+    }
+  }
+
+  const d = getData();
+  entries.forEach(e => d.push(e));
+  saveData(d);
+  window._pendingEntries = null;
+  showStatus(`✓ Įrašyta ${entries.length} eilutė(-ių)`, 'success');
+  setTimeout(clearForm, 1500);
+}
+
+function showDuplicateWarning(sasknr, data, tiekojas, count) {
+  // Remove any existing warning
+  const old = document.getElementById('dupWarning');
+  if (old) old.remove();
+
+  const box = document.createElement('div');
+  box.id = 'dupWarning';
+  box.style.cssText = 'background:#fef3c7;border:1px solid #f59e0b;border-radius:var(--radius-lg);padding:14px;margin-bottom:12px';
+  box.innerHTML = `
+    <div style="font-size:13px;font-weight:600;color:#92400e;margin-bottom:6px">⚠ Ši sąskaita jau įrašyta!</div>
+    <div style="font-size:12px;color:#78350f;margin-bottom:12px">
+      <strong>${sasknr}</strong> · ${tiekojas || '—'} · ${data || '—'}<br>
+      Žurnale jau yra <strong>${count}</strong> eilutė(-ių) iš šios sąskaitos.
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="forceSave()" style="flex:1;padding:9px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;cursor:pointer;background:#dc2626;color:#fff">Įrašyti vistiek</button>
+      <button onclick="cancelDup()" style="flex:1;padding:9px;font-size:13px;font-weight:600;border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;background:var(--card);color:var(--text)">Atšaukti</button>
+    </div>`;
+
+  const extractedCard = document.getElementById('extractedCard');
+  extractedCard.insertBefore(box, extractedCard.firstChild);
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function forceSave() {
+  const box = document.getElementById('dupWarning');
+  if (box) box.remove();
+  if (window._pendingEntries) {
+    const d = getData();
+    window._pendingEntries.forEach(e => d.push(e));
+    saveData(d);
+    window._pendingEntries = null;
+    showStatus('✓ Įrašyta (dublikatas)', 'success');
+    setTimeout(clearForm, 1500);
+  }
+}
+
+function cancelDup() {
+  const box = document.getElementById('dupWarning');
+  if (box) box.remove();
+  window._pendingEntries = null;
+}
+
+/* ---- JOURNAL ---- */
+function parseQty(kiekis) {
+  if (!kiekis) return { num: 0, unit: '' };
+  const m = String(kiekis).match(/([\d.,]+)\s*([A-Za-zĄČĘĖĮŠŲŪŽąčęėįšųūž]*)/);
+  if (!m) return { num: 0, unit: kiekis };
+  return { num: parseFloat(m[1].replace(',', '.')) || 0, unit: m[2].trim().toUpperCase() };
+}
+
+function sumQty(rows) {
+  if (!rows.length) return '—';
+  const units = {};
+  rows.forEach(r => {
+    const { num, unit } = parseQty(r.kiekis);
+    const key = unit || '?';
+    units[key] = (units[key] || 0) + num;
+  });
+  return Object.entries(units).map(([u, n]) => {
+    const rounded = Math.round(n * 1000) / 1000;
+    return rounded + (u ? ' ' + u : '');
+  }).join(' + ');
+}
+
+function onSearch() {
+  const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+  const sr = document.getElementById('searchResults');
+
+  if (!q) {
+    sr.style.display = 'none';
+    renderJournal();
+    return;
+  }
+
+  const d = getData();
+  // Group all data by product
+  const groups = {};
+  d.forEach(r => {
+    const key = (r.produktas || '').trim().toLowerCase();
+    if (!key) return;
+    if (!groups[key]) groups[key] = { name: r.produktas, rows: [] };
+    groups[key].rows.push(r);
+  });
+
+  // Filter groups matching query
+  const matches = Object.values(groups).filter(g =>
+    g.name.toLowerCase().includes(q)
+  );
+
+  if (matches.length) {
+    // For each match find last purchase date and total qty
+    const cards = matches.map(g => {
+      const sorted = g.rows.slice().sort((a, b) => {
+        const da = a.data || a.saved_at || '';
+        const db = b.data || b.saved_at || '';
+        return db > da ? 1 : -1;
+      });
+      const last = sorted[0];
+      const lastDate = last.data || last.saved_at?.slice(0,10) || '—';
+      const total = sumQty(g.rows);
+      const allPanaud = g.rows.every(r => r.kur_panaudota);
+      const panaudCount = g.rows.filter(r => r.kur_panaudota).length;
+      return { name: g.name, lastDate, total, count: g.rows.length, tiekojas: last.tiekojas || '—', allPanaud, panaudCount };
+    }).sort((a, b) => b.lastDate > a.lastDate ? 1 : -1);
+
+    sr.style.display = 'block';
+    sr.innerHTML = '<div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Paieškos rezultatai</div>' +
+      cards.map(c => `
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:8px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+            <div style="font-size:14px;font-weight:600;color:var(--text);flex:1">${c.name}</div>
+            <div style="background:var(--accent2);color:var(--accent);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;flex-shrink:0">${c.total}</div>
+          </div>
+          <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div style="font-size:12px;color:var(--muted)">📅 Paskutinį kartą pirkta<br><strong style="color:var(--text);font-size:14px">${c.lastDate}</strong></div>
+            <div style="font-size:12px;color:var(--muted)">🏭 Tiekėjas<br><strong style="color:var(--text);font-size:13px">${c.tiekojas}</strong></div>
+            <div style="font-size:12px;color:var(--muted)">📦 Pirkimų<br><strong style="color:var(--text)">${c.count} k.</strong></div>
+            <div style="font-size:12px;color:var(--muted)">✓ Panaudota<br><strong style="color:${c.allPanaud ? 'var(--success)' : 'var(--warn)'}">${c.panaudCount}/${c.count}</strong></div>
+          </div>
+        </div>`).join('');
+  } else {
+    sr.style.display = 'block';
+    sr.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Produktų nerasta pagal „' + q + '"</div>';
+  }
+
+  // Also filter journal list below
+  renderJournal();
+}
+
+function renderJournal() {
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  let d = getData();
+  if (search) d = d.filter(r =>
+    (r.produktas||'').toLowerCase().includes(search) ||
+    (r.tiekojas||'').toLowerCase().includes(search) ||
+    (r.sasknr||'').toLowerCase().includes(search)
+  );
+
+  const list = document.getElementById('journalList');
+  list.innerHTML = '';
+  if (!d.length) {
+    list.innerHTML = '<div class="empty"><div class="icon">📋</div><p>Žurnalas tuščias</p></div>';
+    return;
+  }
+
+  // 1. Group by date
+  const byDate = {};
+  d.forEach(r => {
+    const dk = r.data || r.saved_at?.slice(0,10) || '—';
+    if (!byDate[dk]) byDate[dk] = {};
+    // 2. Within date, group by sasknr+tiekojas (one invoice block)
+    const sk = (r.sasknr || '?') + '||' + (r.tiekojas || '?');
+    if (!byDate[dk][sk]) byDate[dk][sk] = { sasknr: r.sasknr, tiekojas: r.tiekojas, pirkejas: r.pirkejas, rows: [] };
+    byDate[dk][sk].rows.push(r);
+  });
+
+  // Sort dates descending
+  const dates = Object.keys(byDate).sort((a,b) => b > a ? 1 : -1);
+
+  dates.forEach(date => {
+    // Date separator
+    const sep = document.createElement('div');
+    sep.style.cssText = 'display:flex;align-items:center;gap:10px;margin:14px 0 8px';
+    const dateLabel = date !== '—' ? date.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1 m. $2-$3 d.') : '—';
+    const invoices = Object.values(byDate[date]);
+    const totalItems = invoices.reduce((s, inv) => s + inv.rows.length, 0);
+    sep.innerHTML = `
+      <div style="background:var(--accent);color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;flex-shrink:0">📅 ${dateLabel}</div>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+      <div style="font-size:11px;color:var(--muted);flex-shrink:0">${invoices.length} sąsk. · ${totalItems} pr.</div>
+      <button onclick="confirmDeleteDate('${date}')" style="background:none;border:1px solid #fca5a5;border-radius:8px;cursor:pointer;color:#dc2626;font-size:11px;font-weight:600;padding:3px 10px;flex-shrink:0" title="Ištrinti šios dienos įrašus">🗑 Ištrinti</button>`;
+    list.appendChild(sep);
+
+    // Each invoice within this date
+    invoices.forEach(inv => {
+      const invBlock = document.createElement('div');
+      invBlock.style.cssText = 'background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden';
+
+      // Invoice header (always visible, clickable)
+      const allPanaud = inv.rows.every(r => r.kur_panaudota);
+      const panaudCount = inv.rows.filter(r => r.kur_panaudota).length;
+      const badgeClass = allPanaud ? 'badge-green' : 'badge-amber';
+      const badgeLabel = allPanaud ? '✓ Visi panaudoti' : panaudCount + '/' + inv.rows.length + ' panaudota';
+      const totalQty = sumQty(inv.rows);
+
+      const hdr = document.createElement('div');
+      hdr.style.cssText = 'display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;user-select:none';
+      hdr.innerHTML = `
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;color:var(--text)">${inv.tiekojas || '—'}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${inv.sasknr || 'Be nr.'} · ${inv.rows.length} prekė(-ių) · <strong style="color:var(--accent)">${totalQty}</strong></div>
+        </div>
+        <span class="j-badge ${badgeClass}" style="flex-shrink:0">${badgeLabel}</span>
+        <span style="color:var(--muted);font-size:18px;flex-shrink:0" class="chevron">▾</span>`;
+      invBlock.appendChild(hdr);
+
+      // Rows body (collapsible)
+      const body = document.createElement('div');
+      body.style.cssText = 'border-top:1px solid var(--border);display:none';
+
+      // Column header
+      body.innerHTML = `<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1.6fr 28px;gap:6px;padding:6px 14px 4px;background:var(--bg)">
+        <span style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase">Produktas</span>
+        <span style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase">Partijos Nr.</span>
+        <span style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase">Kiekis</span>
+        <span style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase">Kur panaudota</span>
+        <span></span>
+      </div>`;
+
+      inv.rows.forEach(r => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr 1.6fr 28px;gap:6px;align-items:center;padding:7px 14px;border-top:1px solid var(--border)';
+        row.innerHTML = `
+          <span style="font-size:13px;font-weight:500;color:var(--text)">${r.produktas||'—'}</span>
+          <span style="font-size:11px;color:var(--muted)">${r.partijos_nr||'—'}</span>
+          <span style="font-size:13px;color:var(--text)">${r.kiekis||'—'}</span>
+          <input type="text" value="${esc(r.kur_panaudota||'')}" placeholder="Kur panaudota..."
+            style="padding:5px 8px;font-size:12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);width:100%;${r.kur_panaudota?'border-color:var(--accent);background:var(--accent2)':''}"
+            onchange="updatePanaud('${r.id}',this.value,this)">
+          <button onclick="deleteRow('${r.id}')" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:2px" title="Ištrinti">✕</button>`;
+        body.appendChild(row);
+      });
+
+      // Galioja iki summary if any
+      const galRows = inv.rows.filter(r => r.galioja_iki);
+      if (galRows.length) {
+        const galSum = document.createElement('div');
+        galSum.style.cssText = 'padding:6px 14px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap';
+        galRows.forEach(r => {
+          const cls = getGalClass(r.galioja_iki);
+          galSum.innerHTML += `<span class="j-badge ${cls}" style="font-size:11px">${r.produktas?.split(' ')[0]||'?'}: ${r.galioja_iki}</span>`;
+        });
+        body.appendChild(galSum);
+      }
+
+      hdr.onclick = () => {
+        const open = body.style.display !== 'none';
+        body.style.display = open ? 'none' : 'block';
+        hdr.querySelector('.chevron').textContent = open ? '▾' : '▴';
+      };
+
+      invBlock.appendChild(body);
+      list.appendChild(invBlock);
+    });
+  });
+}
+function toggleEntry(header) {
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function getGalClass(dateStr) {
+  if (!dateStr) return 'badge-green';
+  const d = new Date(dateStr), now = new Date();
+  const diff = d - now;
+  if (diff < 0) return 'badge-red';
+  if (diff < 30 * 24 * 60 * 60 * 1000) return 'badge-amber';
+  return 'badge-green';
+}
+
+function learnTaisykle(produktas, gaminys) {
+  if (!produktas || !gaminys) return;
+  const t = getTaisykles();
+  // Use first meaningful word (3+ chars) as key
+  const words = produktas.split(/\s+/).filter(w => w.length >= 3);
+  if (!words.length) return;
+  const raktas = words[0].toLowerCase();
+  // Skip if rule already exists for this keyword
+  if (t.find(r => r.raktas.toLowerCase() === raktas)) return;
+  t.push({ raktas, gaminys });
+  saveTaisykles(t);
+  // Show subtle toast
+  showLearnToast(produktas, raktas, gaminys);
+}
+
+function showLearnToast(produktas, raktas, gaminys) {
+  const old = document.getElementById('learnToast');
+  if (old) old.remove();
+  const toast = document.createElement('div');
+  toast.id = 'learnToast';
+  toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:12px;font-weight:500;padding:8px 16px;border-radius:20px;z-index:999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);animation:fadeIn .2s ease';
+  toast.textContent = '🧠 Išmokta: "' + raktas + '" → ' + gaminys;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+function updatePanaud(id, val, inputEl) {
+  const d = getData();
+  const e = d.find(r => r.id === id);
+  if (e) {
+    e.kur_panaudota = val;
+    saveData(d);
+    if (inputEl) {
+      inputEl.style.borderColor = val ? 'var(--accent)' : 'var(--border)';
+      inputEl.style.background = val ? 'var(--accent2)' : 'var(--bg)';
+    }
+    // Auto-learn: save rule if new
+    if (val && e.produktas) learnTaisykle(e.produktas, val);
+  }
+}
+
+function deleteRow(id) {
+  if (!confirm('Ištrinti šį įrašą?')) return;
+  saveData(getData().filter(r => r.id !== id));
+  renderJournal();
+}
+
+/* ---- STATS ---- */
+function renderStats() {
+  const d = getData();
+  const sg = document.getElementById('statGrid');
+  const noDate = d.filter(r => !r.kur_panaudota).length;
+  sg.innerHTML = `
+    <div class="stat-card"><div class="lbl">Iš viso eilučių</div><div class="val">${d.length}</div><div class="sub">Visi įrašai</div></div>
+    <div class="stat-card"><div class="lbl">Tiekėjai</div><div class="val">${new Set(d.map(r=>r.tiekojas).filter(Boolean)).size}</div><div class="sub">Unikalūs</div></div>
+    <div class="stat-card"><div class="lbl">Produktai</div><div class="val">${new Set(d.map(r=>r.produktas).filter(Boolean)).size}</div><div class="sub">Unikalūs</div></div>
+    <div class="stat-card"><div class="lbl">Be panaudojimo</div><div class="val" style="color:${noDate>0?'var(--warn)':'var(--success)'}">${noDate}</div><div class="sub">Reikia užpildyti</div></div>`;
+
+  const prods = {}, suppls = {};
+  d.forEach(r => {
+    if (r.produktas) prods[r.produktas] = (prods[r.produktas]||0)+1;
+    if (r.tiekojas) suppls[r.tiekojas] = (suppls[r.tiekojas]||0)+1;
+  });
+
+  const topP = Object.entries(prods).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const topS = Object.entries(suppls).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  const tpc = document.getElementById('topProductsCard');
+  const tsc = document.getElementById('topSuppliersCard');
+
+  if (topP.length) {
+    tpc.style.display = 'block';
+    document.getElementById('topProducts').innerHTML = topP.map(([n,c])=>`
+      <div class="bar-row">
+        <div class="bar-label" title="${n}">${n}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(c/topP[0][1]*100)}%"></div></div>
+        <div class="bar-count">${c}</div>
+      </div>`).join('');
+  } else tpc.style.display = 'none';
+
+  if (topS.length) {
+    tsc.style.display = 'block';
+    document.getElementById('topSuppliers').innerHTML = topS.map(([n,c])=>`
+      <div class="bar-row">
+        <div class="bar-label" title="${n}">${n}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(c/topS[0][1]*100)}%"></div></div>
+        <div class="bar-count">${c}</div>
+      </div>`).join('');
+  } else tsc.style.display = 'none';
+}
+
+/* ---- CLIPBOARD / IMPORT / ARCHIVE ---- */
+function copyToClipboard() {
+  const d = getData();
+  if (!d.length) { alert('Žurnalas tuščias'); return; }
+  const text = JSON.stringify(d, null, 2);
+  navigator.clipboard.writeText(text).then(() => {
+    showStatus('✓ Nukopijuota į iškarpinę (' + d.length + ' eilutės)', 'success');
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    showStatus('✓ Nukopijuota į iškarpinę', 'success');
+  });
+}
+
+function toggleImportPaste() {
+  const el = document.getElementById('importPasteArea');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function importFromFile(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => processImport(e.target.result);
+  r.readAsText(f);
+  inp.value = '';
+}
+
+function importFromPaste() {
+  const text = document.getElementById('importPasteText').value.trim();
+  if (!text) return;
+  processImport(text);
+}
+
+function processImport(text) {
+  const st = document.getElementById('importStatus');
+  st.style.display = 'block';
+  try {
+    let parsed = JSON.parse(text);
+    if (!Array.isArray(parsed)) parsed = [parsed];
+    if (!parsed.length) throw new Error('Tuščias masyvas');
+    // Merge — skip duplicates by id
+    const existing = getData();
+    const existIds = new Set(existing.map(r => r.id));
+    const toAdd = parsed.filter(r => r.produktas && !existIds.has(r.id));
+    const dupes = parsed.length - toAdd.length;
+    saveData([...existing, ...toAdd]);
+    st.style.cssText = 'display:block;padding:8px 12px;background:var(--success-bg);color:var(--success);border-radius:var(--radius);font-size:12px;font-weight:500;margin-top:8px';
+    st.textContent = '✓ Importuota ' + toAdd.length + ' eilutė(-ių)' + (dupes ? ' · ' + dupes + ' praleista (dublikatai)' : '');
+    renderJournal(); renderStats(); updateDataCount();
+    setTimeout(() => { st.style.display = 'none'; }, 4000);
+  } catch(e) {
+    st.style.cssText = 'display:block;padding:8px 12px;background:#fee2e2;color:#dc2626;border-radius:var(--radius);font-size:12px;font-weight:500;margin-top:8px';
+    st.textContent = '❌ Klaida: ' + e.message;
+  }
+}
+
+function getArchive() { try { return JSON.parse(localStorage.getItem(ARCHIVE_KEY) || '[]') } catch { return [] } }
+function saveArchive(a) { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(a)) }
+
+function archiveAll() {
+  const d = getData();
+  if (!d.length) { alert('Žurnalas tuščias — nėra ko archyvuoti'); return; }
+  const archive = getArchive();
+  const snap = { date: new Date().toISOString().slice(0,16).replace('T',' '), count: d.length, entries: d };
+  archive.unshift(snap);
+  saveArchive(archive);
+  renderArchive();
+  showToast('✓ Archyvuota ' + d.length + ' eilutė(-ių)');
+}
+
+function showToast(msg, color) {
+  const old = document.getElementById('globalToast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.id = 'globalToast';
+  t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:' + (color||'#1a1a1a') + ';color:#fff;font-size:13px;font-weight:600;padding:10px 22px;border-radius:20px;z-index:9999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function exportArchiveJSON() {
+  const a = getArchive();
+  if (!a.length) { alert('Archyvas tuščias'); return; }
+  dl('atsek_archyvas_' + today() + '.json', JSON.stringify(a, null, 2), 'application/json');
+}
+
+function renderArchive() {
+  const card = document.getElementById('archiveCard');
+  const list = document.getElementById('archiveList');
+  if (!card || !list) return;
+  const a = getArchive();
+  if (!a.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  list.innerHTML = a.map((snap, i) => `
+    <div style="background:var(--bg);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${snap.date}</div>
+          <div style="font-size:12px;color:var(--muted)">${snap.count} eilutė(-ių)</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button onclick="restoreSnapshot(${i})" style="padding:5px 10px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer">↩ Atkurti</button>
+        <button onclick="exportSnapshot(${i})" style="padding:5px 10px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer">⬇ JSON</button>
+        <button onclick="exportSnapshotCSV(${i})" style="padding:5px 10px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer">⬇ CSV</button>
+        <button onclick="deleteSnapshot(${i})" style="padding:5px 10px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid #fca5a5;background:transparent;color:#dc2626;cursor:pointer;margin-left:auto">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function restoreSnapshot(i) {
+  const snap = getArchive()[i];
+  if (!snap) return;
+  if (!confirm('Atkurti ' + snap.count + ' eilutes is ' + snap.date + '? Bus prideta.')) return;
+  processImport(JSON.stringify(snap.entries));
+}
+
+function exportSnapshot(i) {
+  const snap = getArchive()[i];
+  if (!snap) return;
+  dl('atsek_archyvas_' + snap.date + '.json', JSON.stringify(snap.entries, null, 2), 'application/json');
+}
+
+function exportSnapshotCSV(i) {
+  const snap = getArchive()[i];
+  if (!snap) return;
+  const h = ['Data','Tiekėjas','Pirkėjas','Sask. Nr.','Produktas','Partijos Nr.','Galioja iki','Kiekis','Kur panaudota'];
+  const rows = snap.entries.map(r => toCSVRow([r.data,r.tiekojas,r.pirkejas,r.sasknr,r.produktas,r.partijos_nr,r.galioja_iki,r.kiekis,r.kur_panaudota]));
+  const csv = [toCSVRow(h), ...rows].join('\r\n');
+  dl('atsek_archyvas_' + snap.date + '.csv', '﻿' + csv, 'text/csv;charset=utf-8');
+}
+
+function deleteSnapshot(i) {
+  const snap = getArchive()[i];
+  if (!snap) return;
+  if (!confirm('Istrinti? ' + snap.date + ' - ' + snap.count + ' eiluciu. Negalima atsaukti.')) return;
+  const a = getArchive();
+  a.splice(i, 1);
+  saveArchive(a);
+  renderArchive();
+  showToast('🗑 Archyvo įrašas ištrintas');
+}
+
+/* ---- EXPORT ---- */
+function toCSVRow(arr) {
+  return arr.map(v => '"' + String(v||'').replace(/"/g,'""') + '"').join(';');
+}
+
+function exportCSV() {
+  const d = getData();
+  if (!d.length) { alert('Žurnalas tuščias'); return; }
+  const h = ['Data','Tiekėjas','Pirkėjas','Sask. Nr.','Produktas','Partijos Nr.','Galioja iki','Kiekis','Kur panaudota'];
+  const sorted = d.slice().sort((a,b) => (b.data||b.saved_at||'') > (a.data||a.saved_at||'') ? 1 : -1);
+  const rows = sorted.map(r => toCSVRow([r.data,r.tiekojas,r.pirkejas,r.sasknr,r.produktas,r.partijos_nr,r.galioja_iki,r.kiekis,r.kur_panaudota]));
+  const csv = [toCSVRow(h), ...rows].join('\r\n');
+  dl('atsekamumo_zurnalas_' + today() + '.csv', '\uFEFF' + csv, 'text/csv;charset=utf-8');
+  showToast('\u2713 CSV failas issaugotas');
+}
+
+function exportArchiveCSV() {
+  const a = getArchive();
+  if (!a.length) { alert('Archyvas tuscias'); return; }
+  const allEntries = a.flatMap(snap => snap.entries.map(e => ({...e, archyvo_data: snap.date})));
+  const h = ['Archyvo data','Data','Tiekėjas','Pirkėjas','Sask. Nr.','Produktas','Partijos Nr.','Galioja iki','Kiekis','Kur panaudota'];
+  const rows = allEntries.map(r => toCSVRow([r.archyvo_data,r.data,r.tiekojas,r.pirkejas,r.sasknr,r.produktas,r.partijos_nr,r.galioja_iki,r.kiekis,r.kur_panaudota]));
+  const csv = [toCSVRow(h), ...rows].join('\r\n');
+  dl('atsek_archyvas_' + today() + '.csv', '\uFEFF' + csv, 'text/csv;charset=utf-8');
+  showToast('\u2713 Archyvo CSV issaugotas');
+}
+function exportJSON() {
+  const d = getData();
+  if (!d.length) { alert('Žurnalas tuščias'); return; }
+  dl('atsekamumo_zurnalas_' + today() + '.json', JSON.stringify(d, null, 2), 'application/json');
+}
+
+function dl(name, data, mime) {
+  // Accept either (name, dataURI) or (name, data, mime)
+  let url;
+  if (mime) {
+    const blob = new Blob([data], { type: mime });
+    url = URL.createObjectURL(blob);
+  } else {
+    // legacy dataURI path
+    url = data;
+  }
+  const a = document.createElement('a');
+  a.href = url; a.download = name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  if (mime) setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function today() { return new Date().toISOString().slice(0,10); }
+
+function confirmDeleteDate(date) {
+  const d = getData();
+  const toDelete = d.filter(r => (r.data || r.saved_at?.slice(0,10) || '—') === date);
+  const invoices = new Set(toDelete.map(r => r.sasknr).filter(Boolean)).size;
+  const dateLabel = date !== '—' ? date : 'nežinoma data';
+  document.getElementById('clearModalInfo').innerHTML =
+    `<strong>${dateLabel}</strong><br>${toDelete.length} eilutė(-ių) iš ${invoices || toDelete.length} sąskaitos(-ų)`;
+  window._deleteTarget = { type: 'date', date };
+  document.getElementById('clearModal').style.display = 'flex';
+}
+
+function showClearModal(from) {
+  const d = getData();
+  const invoices = new Set(d.map(r => r.sasknr).filter(Boolean)).size;
+  document.getElementById('clearModalInfo').textContent =
+    `Žurnale yra ${d.length} eilutė(-ių) iš ${invoices} sąskaitos(-ų). Šio veiksmo negalima atšaukti.`;
+  document.getElementById('clearModal').style.display = 'flex';
+}
+
+function closeClearModal() {
+  document.getElementById('clearModal').style.display = 'none';
+}
+
+function confirmClearAll() {
+  const target = window._deleteTarget;
+  if (target && target.type === 'date') {
+    const remaining = getData().filter(r => (r.data || r.saved_at?.slice(0,10) || '—') !== target.date);
+    saveData(remaining);
+    window._deleteTarget = null;
+    closeClearModal();
+    renderJournal(); renderStats(); updateDataCount();
+    showStatus('✓ Dienos įrašai ištrinti', 'success');
+  } else {
+    localStorage.removeItem(STORAGE_KEY);
+    window._deleteTarget = null;
+    closeClearModal();
+    renderJournal(); renderStats(); updateDataCount();
+    showStatus('✓ Visi duomenys ištrinti', 'success');
+  }
+}
+
+function clearAll() { showClearModal(); }
+
+function updateDataCount() {
+  const d = getData();
+  const el = document.getElementById('dataCount');
+  if (el) el.textContent = `Žurnale: ${d.length} eilutė(-ių) iš ${new Set(d.map(r=>r.sasknr).filter(Boolean)).size} sąskaitos(-ų)`;
+}
+</script>
+
+
+
+<script>
+// Inline PWA manifest via blob
+const manifestData = {
+  name: "Atsekamumo Žurnalas",
+  short_name: "Žurnalas",
+  description: "Žaliavų atsekamumo žurnalas",
+  start_url: "./",
+  display: "standalone",
+  background_color: "#0f1117",
+  theme_color: "#2a6b3c",
+  orientation: "portrait",
+  icons: [
+    { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232a6b3c'/%3E%3Ctext y='.9em' font-size='75' x='12'%3E%F0%9F%93%8B%3C/text%3E%3C/svg%3E", sizes: "192x192", type: "image/svg+xml" },
+    { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232a6b3c'/%3E%3Ctext y='.9em' font-size='75' x='12'%3E%F0%9F%93%8B%3C/text%3E%3C/svg%3E", sizes: "512x512", type: "image/svg+xml" }
+  ]
+};
+const manifestBlob = new Blob([JSON.stringify(manifestData)], {type:'application/json'});
+const manifestURL = URL.createObjectURL(manifestBlob);
+const manifestLink = document.createElement('link');
+manifestLink.rel = 'manifest'; manifestLink.href = manifestURL;
+document.head.appendChild(manifestLink);
+
+// Service Worker for offline support
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'atsek-v1';
+    self.addEventListener('install', e => {
+      self.skipWaiting();
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(clients.claim());
+    });
+    self.addEventListener('fetch', e => {
+      // Cache-first for same-origin, network-first for API
+      if (e.request.url.includes('anthropic.com')) return;
+      e.respondWith(
+        caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => cached))
+      );
+    });
+  `;
+  const swBlob = new Blob([swCode], {type:'text/javascript'});
+  const swURL = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL, {scope: './'}).catch(() => {});
+}
+
+// Install prompt
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBanner();
+});
+
+function showInstallBanner() {
+  const existing = document.getElementById('installBanner');
+  if (existing) return;
+  const banner = document.createElement('div');
+  banner.id = 'installBanner';
+  banner.style.cssText = 'position:fixed;bottom:70px;left:12px;right:12px;background:var(--accent);color:#fff;border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:10px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3)';
+  banner.innerHTML = `
+    <span style="font-size:22px">📲</span>
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:600">Įdiegti į telefoną</div>
+      <div style="font-size:11px;opacity:.85">Veiks be interneto</div>
+    </div>
+    <button onclick="installApp()" style="background:#fff;color:var(--accent);border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">Įdiegti</button>
+    <button onclick="document.getElementById('installBanner').remove()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:0 4px;opacity:.8">✕</button>`;
+  document.body.appendChild(banner);
+}
+
+async function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  const b = document.getElementById('installBanner');
+  if (b) b.remove();
+  if (outcome === 'accepted') showToast('✓ Programa įdiegta!');
+}
+
+// iOS install hint
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone = window.navigator.standalone;
+if (isIOS && !isStandalone) {
+  setTimeout(() => {
+    const existing = document.getElementById('iosBanner');
+    if (existing) return;
+    const b = document.createElement('div');
+    b.id = 'iosBanner';
+    b.style.cssText = 'position:fixed;bottom:70px;left:12px;right:12px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3)';
+    b.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="font-size:22px">📲</span>
+        <div style="font-size:13px;font-weight:600;color:var(--text)">Įdiegti į iPhone</div>
+        <button onclick="document.getElementById('iosBanner').remove()" style="margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px">✕</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6">
+        Spustelėk <strong style="color:var(--text)">⬆ Dalintis</strong> apačioje,<br>
+        tada pasirink <strong style="color:var(--text)">"Add to Home Screen"</strong>
+      </div>`;
+    document.body.appendChild(b);
+    setTimeout(() => { if(b.parentNode) b.remove(); }, 8000);
+  }, 2000);
+}
+</script>
+</body>
+</html>
